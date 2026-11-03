@@ -195,7 +195,7 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
 <div class="eyebrow" id="messageEyebrow">.--. .- .-. .- / -. ..- -. -.-. .- / . ... --.- ..- . -.-. . .-.      :</div>
 <h2 id="messageHeading">.- .-.. --. ..- -- .- ... / -.-. --- .. ... .- ... / ... .- --- / . - . .-. -. .- ...</h2>
 <div class="memory-card"><p id="messageText">-. .- / -. --- .. - . / --.- ..- . / - . / -.-. --- -. .... . -.-. .. --..-- / -. .- / -. --- .. - . / -.. --- / -. --- ... ... --- / .--. .-. .. -- . .. .-. --- / . ..- / - . / .- -- --- / --- / -.-. . ..- / - .. -. .... .- / ... ..- .- / .--. .-. --- .--. .-. .. .- / -- .- -. . .. .-. .- / -.. . / -.-. --- -. - .- .-. / ..- -- .- / .... .. ... - --- .-. .. .- .-.-.- / ..-. .. --.. / . ... - . / ... .. - . / .--. .- .-. .- / --. ..- .- .-. -.. .- .-. / ..- -- / .--. . -.. .- -.-. .. -. .... --- / -.. .- / -. --- ... ... .- / .... .. ... - --- .-. .. .- .-.-.-     —   . -. - .-. . / - --- -.. .- ... / .- ... / .--. --- ... ... .. -... .. .-.. .. -.. .- -.. . ... / -.. --- / ..- -. .. ...- . .-. ... --- --..-- / .- / -- .. -. .... .- / ... . --. ..- -. -.. .- / ..-. .- ...- --- .-. .. - .- / . / . ... ... .- / . -- / --.- ..- . / -. --- ... ... --- ... / -.-. .- -- .. -. .... --- ... / ... . / . -. -.-. --- -. - .-. .- .-. .- -- .-.-.- / ... . / --- / .- -- --- .-. / .--. --- -.. . / .- - .-. .- ...- . ... ... .- .-. / --- / - . -- .--. --- / . / --- / . ... .--. .- -.-. --- --..-- / . -. - .- --- / -. . -. .... ..- -- .- / -.. .. ... - .- -. -.-. .. .- / -. ..- -. -.-. .- / ... . .-. .- / --. .-. .- -. -.. . / --- / -... .- ... - .- -. - . / .--. .- .-. .- / .- .--. .- --. .- .-. / --- / --.- ..- . / ...- .. ...- . -- --- ... .-.-.-   (   .- / .--. .-. .. -- . .. .-. .- / . / .- / --.- ..- . / ..-. .. -.-. .- -- --- ... / .--- ..- -. - --- ...   )</p></div>
-<audio autoplay="" id="backgroundMusic" loop="" playsinline="" preload="auto" src="assets/musica.MP3"></audio>
+<audio autoplay="" id="backgroundMusic" loop="" playsinline="" preload="auto" src="https://raw.githubusercontent.com/Sunnyzinhah/Entre-Estrelas/main/assets/musica.MP3"></audio>
 
 </div>
 </section>
@@ -284,14 +284,41 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
       musicButton.setAttribute("aria-pressed", String(playing));
     }
     async function toggleMusic() {
-      if (backgroundAudio.paused) {
-        try {
-          await backgroundAudio.play();
-        } catch (error) {
-          toast("Não foi possível tocar. Confira se assets/musica.MP3 foi enviado ao GitHub.");
-        }
-      } else {
+      if (!backgroundAudio.paused) {
         backgroundAudio.pause();
+        syncMusicButton();
+        return;
+      }
+
+      try {
+        // Force a fresh request to the exact file that exists in the public repository.
+        if (!backgroundAudio.currentSrc ||
+            !backgroundAudio.currentSrc.includes("/assets/musica.MP3")) {
+          backgroundAudio.src = "https://raw.githubusercontent.com/Sunnyzinhah/Entre-Estrelas/main/assets/musica.MP3";
+          backgroundAudio.load();
+        }
+        await backgroundAudio.play();
+      } catch (error) {
+        console.error("Falha ao reproduzir a música:", error);
+        console.error("Detalhes da mídia:", {
+          source: backgroundAudio.currentSrc || backgroundAudio.src,
+          mediaErrorCode: backgroundAudio.error?.code ?? null,
+          mediaErrorMessage: backgroundAudio.error?.message ?? null,
+          networkState: backgroundAudio.networkState,
+          readyState: backgroundAudio.readyState
+        });
+
+        let message = "Não foi possível tocar a música.";
+        if (error?.name === "NotAllowedError") {
+          message = "O navegador bloqueou a reprodução. Tente clicar novamente em Tocar música.";
+        } else if (backgroundAudio.error?.code === 2) {
+          message = "Falha de rede ao carregar a música. Confira sua conexão e tente novamente.";
+        } else if (backgroundAudio.error?.code === 3) {
+          message = "O navegador recebeu o áudio, mas não conseguiu decodificá-lo.";
+        } else if (backgroundAudio.error?.code === 4) {
+          message = "O navegador não reconheceu o formato ou a origem do áudio.";
+        }
+        toast(message);
       }
       syncMusicButton();
     }
@@ -432,7 +459,41 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
     savedSkyImageOne = initialConfig.skyImageOne || "";
     savedSkyImageTwo = initialConfig.skyImageTwo || "";
     applyConfig(initialConfig);
-    backgroundAudio.play().then(syncMusicButton).catch(syncMusicButton);
+    // Tenta iniciar ao carregar; se o navegador bloquear autoplay com som,
+    // tenta novamente após o primeiro gesto válido do usuário.
+    let waitingForMusicGesture = true;
+    async function tryStartBackgroundMusic() {
+      if (!backgroundAudio.paused) {
+        syncMusicButton();
+        return true;
+      }
+      try {
+        await backgroundAudio.play();
+        waitingForMusicGesture = false;
+        syncMusicButton();
+        return true;
+      } catch (error) {
+        syncMusicButton();
+        if (error?.name !== "NotAllowedError") {
+          console.warn("A música não iniciou automaticamente:", error);
+        }
+        return false;
+      }
+    }
+    function startMusicAfterFirstInteraction(event) {
+      // Não intercepta o botão Tocar/Pausar música.
+      if (event.target?.closest?.("#musicTop")) return;
+      if (!waitingForMusicGesture) return;
+      waitingForMusicGesture = false;
+      document.removeEventListener("pointerdown", startMusicAfterFirstInteraction);
+      document.removeEventListener("keydown", startMusicAfterFirstInteraction);
+      document.removeEventListener("touchstart", startMusicAfterFirstInteraction);
+      if (backgroundAudio.paused) tryStartBackgroundMusic();
+    }
+    document.addEventListener("pointerdown", startMusicAfterFirstInteraction);
+    document.addEventListener("keydown", startMusicAfterFirstInteraction);
+    document.addEventListener("touchstart", startMusicAfterFirstInteraction, { passive: true });
+    tryStartBackgroundMusic();
   </script>
 
 
