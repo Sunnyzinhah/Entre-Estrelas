@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#100d25">
+<title>Um Segredo Entre Estrelas ✦</title>
+<style>
+:root{color-scheme:dark;--bg:#100d25;--lav:#c9bce9;--cream:#fff0b8;--text:#f5f0ff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Georgia,'Times New Roman',serif;background:var(--bg);color:var(--text)}
+body{min-height:100vh;overflow-x:hidden;background:radial-gradient(ellipse at 50% 38%,rgba(75,55,125,.34),transparent 52%),linear-gradient(180deg,#100d25,#080615 100%);display:flex;align-items:center;justify-content:center;padding:28px 16px;position:relative}
+#starfield{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.page{position:relative;z-index:1;width:min(100%,760px);text-align:center;padding:clamp(24px,6vw,58px) clamp(16px,4vw,42px);border:1px solid rgba(201,188,233,.19);border-radius:28px;background:rgba(16,13,37,.58);box-shadow:0 0 65px rgba(111,81,175,.12);backdrop-filter:blur(4px)}
+.kicker{font:12px/1.6 system-ui,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#c8b9ed;opacity:.85;margin:0 0 22px}
+h1{font-size:clamp(34px,7vw,58px);line-height:1.15;font-weight:400;margin:0 0 36px;text-shadow:0 0 28px rgba(201,188,233,.2)}
+.twinkle{color:var(--cream);text-shadow:0 0 14px rgba(255,240,184,.8)}
+.choices{display:flex;align-items:center;justify-content:center;gap:clamp(26px,6vw,44px);min-height:150px;flex-wrap:nowrap;width:100%;overflow:hidden;padding:12px 4px}
+.choice{flex:0 1 auto;width:116px;min-width:0;min-height:50px;border-radius:999px;padding:12px 10px;border:1px solid rgba(201,188,233,.38);font:600 15px system-ui,sans-serif;cursor:pointer;transition:width .28s ease,opacity .25s ease,background .25s ease,font-size .28s ease;touch-action:manipulation;white-space:nowrap;overflow:hidden}
+#yesButton{background:linear-gradient(135deg,#8973c7,#624b9e);color:white;box-shadow:0 0 22px rgba(137,115,199,.2);position:relative;z-index:2;flex:0 0 auto;transform:none;overflow:hidden;max-width:100%}
+#noButton{background:rgba(255,255,255,.045);color:#e6dcfb;flex:0 1 116px;min-width:34px}
+.choice:focus-visible{outline:2px solid var(--cream);outline-offset:4px}
+#result{display:none;animation:fadeIn .9s ease both}
+#result.show{display:block}
+#resultMessage{font-size:clamp(28px,5.5vw,44px);line-height:1.25;font-weight:400;margin:8px 0 26px}
+#videoArea{display:none;animation:fadeIn 1s ease both}
+#videoArea.show{display:block}
+video{display:block;width:100%;max-height:68vh;background:#05040d;border:1px solid rgba(201,188,233,.25);border-radius:18px;box-shadow:0 0 35px rgba(137,115,199,.16)}
+.video-note{font:13px/1.6 system-ui,sans-serif;color:#c6badf;margin:14px auto 0;max-width:540px}
+.back{display:inline-block;margin-top:28px;color:#c8b9ed;font:13px system-ui,sans-serif;text-decoration:none;opacity:.8}.back:hover{opacity:1}
+.music-hint{font:12px/1.6 system-ui,sans-serif;color:#bdb0d8;margin-top:18px;min-height:1.5em}
+@keyframes fadeIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<canvas id="starfield" aria-hidden="true"></canvas>
+<audio id="backgroundMusic" loop playsinline preload="auto" autoplay src="https://raw.githubusercontent.com/Sunnyzinhah/Entre-Estrelas/main/assets/musica.MP3"></audio>
+<main class="page">
+  <p class="kicker">Uma surpresa escondida no universo</p>
+  <section id="questionArea">
+    <h1>Tem certeza<span class="twinkle">?</span> <span class="twinkle">✦</span></h1>
+    <div class="choices" aria-label="Escolha uma opção">
+      <button class="choice" id="yesButton" type="button">SIM 💜</button>
+      <button class="choice" id="noButton" type="button">NÃO</button>
+    </div>
+    <p class="music-hint" id="musicHint" aria-live="polite"></p>
+  </section>
+  <section id="result" aria-live="polite">
+    <h2 id="resultMessage">Certo, então se prepare! <span class="twinkle">✦</span></h2>
+    <div id="videoArea">
+      <video id="secretVideo" controls playsinline preload="metadata">
+        <source src="assets/segredo.mp4" type="video/mp4">
+        Seu navegador não conseguiu carregar o vídeo.
+      </video>
+    </div>
+  </section>
+  <a class="back" href="index.html">← Voltar para as estrelas</a>
+</main>
+<script>
+(() => {
+  const canvas=document.getElementById('starfield'),ctx=canvas.getContext('2d');
+  let w=0,h=0,dpr=1,stars=[];
+  function resize(){dpr=Math.min(window.devicePixelRatio||1,2);w=window.innerWidth;h=window.innerHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);canvas.style.width=w+'px';canvas.style.height=h+'px';ctx.setTransform(dpr,0,0,dpr,0,0);stars=Array.from({length:Math.min(150,Math.max(65,Math.floor(w*h/9500)) )},()=>({x:Math.random()*w,y:Math.random()*h,r:.45+Math.random()*1.7,a:.25+Math.random()*.7,phase:Math.random()*Math.PI*2,speed:.15+Math.random()*.5,drift:(Math.random()-.5)*.18}));}
+  function draw(){ctx.clearRect(0,0,w,h);for(const s of stars){s.y+=s.speed*.22;s.x+=s.drift; s.phase+=.018;if(s.y>h+3){s.y=-3;s.x=Math.random()*w}if(s.x<0)s.x=w;if(s.x>w)s.x=0;ctx.globalAlpha=s.a*(.72+.28*Math.sin(s.phase));ctx.fillStyle='#fff7dc';ctx.shadowColor='#c9bce9';ctx.shadowBlur=8;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill()}ctx.globalAlpha=1;ctx.shadowBlur=0;requestAnimationFrame(draw)}
+  resize();window.addEventListener('resize',resize);draw();
+  const music=document.getElementById('backgroundMusic'),hint=document.getElementById('musicHint');
+  async function tryMusic(){try{await music.play();hint.textContent='';return true}catch(e){hint.textContent='';return false}}
+  tryMusic();document.addEventListener('pointerdown',()=>{if(!music.paused) return;tryMusic()},{once:false});
+  const yes=document.getElementById('yesButton'),no=document.getElementById('noButton');let scale=1;const maxScale=2.35;
+  // Efeitos sonoros leves gerados no próprio navegador, sem precisar adicionar arquivos.
+  let audioContext;
+  function getAudioContext(){
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)return null;
+    if(!audioContext)audioContext=new AudioCtx();
+    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+    return audioContext;
+  }
+  function playErrorSound(){
+    const ac=getAudioContext();if(!ac)return;
+    const now=ac.currentTime;
+    [330,247].forEach((freq,i)=>{
+      const osc=ac.createOscillator(),gain=ac.createGain();
+      osc.type='triangle';osc.frequency.setValueAtTime(freq,now+i*.11);
+      gain.gain.setValueAtTime(.0001,now+i*.11);
+      gain.gain.exponentialRampToValueAtTime(.12,now+i*.11+.015);
+      gain.gain.exponentialRampToValueAtTime(.0001,now+i*.11+.16);
+      osc.connect(gain);gain.connect(ac.destination);osc.start(now+i*.11);osc.stop(now+i*.11+.18);
+    });
+  }
+  function playExpansionSound(){
+    const ac=getAudioContext();if(!ac)return;
+    const now=ac.currentTime,osc=ac.createOscillator(),gain=ac.createGain(),filter=ac.createBiquadFilter();
+    osc.type='sine';osc.frequency.setValueAtTime(180,now);osc.frequency.exponentialRampToValueAtTime(620,now+.28);osc.frequency.exponentialRampToValueAtTime(420,now+.48);
+    filter.type='lowpass';filter.frequency.setValueAtTime(900,now);filter.frequency.exponentialRampToValueAtTime(2200,now+.3);
+    gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.10,now+.06);gain.gain.exponentialRampToValueAtTime(.0001,now+.5);
+    osc.connect(filter);filter.connect(gain);gain.connect(ac.destination);osc.start(now);osc.stop(now+.52);
+  }
+  const choices=document.querySelector('.choices');
+  function updateButtonSizes(){
+    const styles=getComputedStyle(choices);
+    const gap=parseFloat(styles.gap)||26;
+    const available=choices.clientWidth-8;
+    const noWidth=Math.max(34,116-Math.max(0,scale-1)*42);
+    // Cresce em todas as direções, mas reserva espaço real no layout e fica dentro do painel.
+    const maxFit=Math.max(1,(available-gap-noWidth-8)/116);
+    const visualScale=Math.min(scale,maxFit,maxScale);
+    const yesWidth=116*visualScale;
+    yes.style.width=yesWidth+'px';
+    yes.style.flexBasis=yesWidth+'px';
+    yes.style.height=(50*visualScale)+'px';
+    yes.style.padding=(12*visualScale)+'px '+(10*visualScale)+'px';
+    yes.style.fontSize=Math.max(10,15*visualScale)+'px';
+    no.style.width=noWidth+'px';
+    no.style.flexBasis=noWidth+'px';
+    no.style.fontSize=Math.max(9,15*(noWidth/116))+'px';
+  }
+  updateButtonSizes();window.addEventListener('resize',updateButtonSizes);
+  no.addEventListener('click',()=>{playErrorSound();scale=Math.min(maxScale,scale+.27);updateButtonSizes();playExpansionSound();if(scale>=maxScale){no.disabled=true;no.style.opacity='0';no.style.pointerEvents='none';no.style.visibility='hidden';no.setAttribute('aria-hidden','true')}});
+  yes.addEventListener('click',()=>{
+    music.pause();music.currentTime=0;hint.textContent='';
+    document.getElementById('questionArea').style.display='none';
+    const result=document.getElementById('result');result.classList.add('show');
+    window.setTimeout(()=>{const area=document.getElementById('videoArea');area.classList.add('show');const video=document.getElementById('secretVideo');video.volume=.85;video.play().catch(()=>{});},1700);
+  });
+})();
+</script>
+</body>
+</html>
