@@ -158,7 +158,16 @@
       margin-top: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0;
       
     }
-html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}html,body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,Arial,sans-serif!important}button,input,textarea,select{font-family:inherit}html{background-color:transparent}html.chatgptOled.dark,html.mobileSkybridge.dark{background-color:#000}@supports (font: -apple-system-body){html.mobileSkybridge{font:-apple-system-body}}html.desktopSkybridge.dark{background-color:#1e1e1e}html.transparentSkybridgeBackground,html.transparentSkybridgeBackground.dark{background-color:transparent}html.androidSkybridge,html.androidSkybridge body,html.androidSkybridge *{-webkit-tap-highlight-color:rgba(255,255,255,0)}html.androidSkybridge *::selection,html.androidSkybridge *::-moz-selection{background:#fff0;color:inherit}</style></head>
+html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}html,body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Helvetica Neue,Arial,sans-serif!important}button,input,textarea,select{font-family:inherit}html{background-color:transparent}html.chatgptOled.dark,html.mobileSkybridge.dark{background-color:#000}@supports (font: -apple-system-body){html.mobileSkybridge{font:-apple-system-body}}html.desktopSkybridge.dark{background-color:#1e1e1e}html.transparentSkybridgeBackground,html.transparentSkybridgeBackground.dark{background-color:transparent}html.androidSkybridge,html.androidSkybridge body,html.androidSkybridge *{-webkit-tap-highlight-color:rgba(255,255,255,0)}html.androidSkybridge *::selection,html.androidSkybridge *::-moz-selection{background:#fff0;color:inherit}</style><style>
+/* Acesso discreto à surpresa final */
+.secret-entry-wrap { display:flex; justify-content:center; align-items:center; padding:10px 16px 24px; position:relative; z-index:2; }
+.secret-entry { display:inline-flex; align-items:center; gap:7px; border:1px solid rgba(201,188,233,.22); background:rgba(16,13,37,.42); color:rgba(232,222,255,.62); border-radius:999px; padding:8px 13px; font:inherit; font-size:12px; letter-spacing:.08em; text-decoration:none; opacity:.48; transition:opacity .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease; }
+.secret-entry:hover,.secret-entry:focus-visible { opacity:1; border-color:rgba(201,188,233,.8); box-shadow:0 0 18px rgba(201,188,233,.18); transform:translateY(-2px); outline:none; }
+.secret-entry-star { color:#fff0b8; text-shadow:0 0 9px rgba(255,240,184,.9); animation:secretStarPulse 2.4s ease-in-out infinite; }
+@keyframes secretStarPulse { 0%,100%{opacity:.55;transform:scale(.88)} 50%{opacity:1;transform:scale(1.15)} }
+@media (prefers-reduced-motion:reduce) { .secret-entry-star { animation:none; } }
+</style>
+</head>
 <body>
 <div class="gift-gate" id="giftGate" role="dialog" aria-modal="true" aria-labelledby="giftGateTitle" aria-describedby="giftGateCopy">
   <div class="gift-panel">
@@ -231,6 +240,7 @@ html,body,#root{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grays
 </div>
 </section>
 <footer id="footerText">. ..- / - . / .- -- ---    —   . ... - .- .-. . -- --- ... / ... . -- .--. .-. . / .--- ..- -. - --- ...  em algum lugar entre a Terra e as estrelas ✦</footer>
+<div class="secret-entry-wrap"><a class="secret-entry" href="segredo.html" aria-label="Abrir a surpresa secreta">Segredo <span class="secret-entry-star" aria-hidden="true">★</span></a></div>
 </main>
 <canvas aria-hidden="true" height="909" id="effectCanvas" width="1853"></canvas>
 
